@@ -40,6 +40,25 @@ slack:
 - **Socket Mode** — More reliable than webhooks for real-time
 - **Dedicated channels** — Keeps bot chatter separate from human channels
 
+### Model Selection (Cortana's Approach)
+
+**Primary Model:** Claude Sonnet 4.5
+- Quality/speed balance for QA work
+- Strong at security analysis
+- Reliable for code review
+
+**Thinking Level:** `low`
+- Fast responses without over-analyzing
+- Save deeper reasoning for complex problems
+
+### Heartbeat Configuration
+
+**Default:** Every 1 hour
+- Not for channel polling (Socket Mode handles that)
+- For proactive background tasks
+- Check inbox, calendar, notifications
+- Batch multiple checks together
+
 ### Token Rotation Procedure
 
 1. Go to api.slack.com → Your Apps → Select Bot
@@ -88,7 +107,35 @@ Schema-first collaboration protocol for parallel AI development.
 | YOLO 2.0 Notifications | ~1,600 | Squatchy + Marvin | 1 session | Shipped |
 | Smart Retry System | ~4,500 | Squatchy + Marvin | 1 session | Shipped |
 | Cloe Scheduling | ~26,000 | Squatchy + Marvin | <24 hours | Deployed |
-| Squatchback APIs | ~2,082 | All 3 bots | 90 min demo | Shipped |
+| **Squatchback Demo** | **~2,082** | **All 3 bots** | **90 min demo** | **Shipped** |
+
+### Squatchback Demo Deep Dive (2026-02-06)
+
+**The Challenge:** Live demo for Head of Software in 90 minutes
+
+**The Approach:**
+1. **Act 1:** Widget integration (pre-demo, PR #148)
+2. **Act 2:** Reactions feature (live, 25 min, 676 LOC)
+3. **Act 3:** API integration (live, 45 min, 1,382 LOC)
+
+**Agent Responsibilities:**
+- 🛡️ **Cortana:** Schema design, API routes, tests, security review
+- 🦝 **Marvin:** Frontend components, hooks, dashboard
+- 🦶 **Squatchy:** Backend coordination, PR management
+
+**Key Success Factors:**
+- Schema-first planning (Prisma schema first)
+- Parallel execution (all agents working simultaneously)
+- Real-time coordination in #clawdbot-relay
+- Security review before merge (caught authorization issues)
+- Quality over speed (proper tests, no shortcuts)
+
+**Results:**
+- 2,082+ lines delivered
+- 9-10/10 quality (validated by Cortana)
+- 92% security hardening
+- Impressed Head of Software
+- Led to 4th agent approval (Speedy Gonzales)
 
 ---
 
@@ -120,11 +167,47 @@ Safe word location: `~/.secrets/safeword`
 
 ### Token Leak Response (2026-02-07 Incident)
 
-1. **STOP** — Don't paste more
-2. **ROTATE** — New tokens immediately
-3. **DELETE** — Remove messages if possible
-4. **VERIFY** — Test new tokens work
-5. **DOCUMENT** — Log incident for learning
+**What Happened:**
+Pat was troubleshooting Squatchy's bot-to-bot communication issue and accidentally pasted:
+- Telegram bot token (first)
+- Slack bot token (second)
+- Slack app token (third)
+
+All in #clawdbot-relay channel within 2 minutes.
+
+**Team Response:**
+- All three bots immediately flagged security alert 🚨
+- Provided step-by-step rotation procedures
+- Marvin gave detailed timeline (~10 min total)
+- Squatchy requested message deletion
+
+**Resolution Steps:**
+1. **STOP** — Don't paste more credentials
+2. **ROTATE** — All three tokens immediately:
+   - Telegram: @BotFather → `/revoke` → `/newtoken`
+   - Slack bot: api.slack.com → OAuth & Permissions → Rotate
+   - Slack app: api.slack.com → Basic Info → App-Level Tokens → Regenerate
+3. **UPDATE** — New tokens in openclaw.json
+4. **RESTART** — `openclaw gateway restart`
+5. **VERIFY** — Test connectivity in channel
+6. **DELETE** — Remove messages with credentials (if possible)
+7. **DOCUMENT** — Log incident in memory files
+
+**Timeline:**
+- 15:27 UTC: First token exposed
+- 15:28 UTC: Two more tokens exposed
+- 15:29 UTC: Pat acknowledged, started rotation
+- 15:47 UTC: Gateway stopped (token updates)
+- 16:19 UTC: All bots back online, comms restored
+- ~52 minutes total downtime
+
+**Root Cause:**
+Squatchy's config was missing `"allowBots": true`, preventing bot-to-bot communication.
+
+**Prevention:**
+- Use `REDACTED` in config examples
+- Share sensitive config via secure DM only
+- Implement safe word protocol for credential access
 
 ---
 
@@ -188,7 +271,93 @@ Safe word location: `~/.secrets/safeword`
 
 ---
 
-## 6. Workspace & Tools
+## 6. Token Efficiency & Reliability Patterns
+
+### Token Efficiency (Cortana's Techniques)
+
+**Compact Acknowledgments:**
+```
+❌ "Thank you for that detailed explanation. I understand completely and will proceed with the task as described."
+✅ "👍 Got it."
+```
+
+**Memory Search First:**
+```
+❌ Read full MEMORY.md + all daily logs on every question
+✅ Use memory_search to find relevant snippets
+✅ Use memory_get with from/lines to read only needed sections
+```
+
+**Selective File Reads:**
+```
+❌ Read entire large file
+✅ Use offset + limit for large files
+✅ Read only the sections you need
+```
+
+**When Other Bots Already Responded:**
+```
+❌ "I agree with Marvin's excellent analysis above..."
+✅ React with 👍 emoji instead
+```
+
+### Reliability Patterns (Cortana's Checklist)
+
+**1. Read Skills Before Using**
+```bash
+# Always read the skill file first
+read ~/path/to/skill/SKILL.md
+
+# Prevents hallucinating skill behavior
+# Ensures correct usage
+```
+
+**2. Validate Config vs Assumptions**
+```bash
+# Don't assume config settings
+gateway config.get
+
+# Check actual values before asserting
+# Especially for channel config, model settings
+```
+
+**3. Status Checks Before Assertions**
+```bash
+# Before claiming "build succeeded"
+# Verify actual state
+
+# Examples:
+- Check git status before claiming branch merged
+- Verify file exists before saying "created"
+- Test API endpoint before confirming "deployed"
+```
+
+**4. Error Handling in Scripts**
+```bash
+# Always check exit codes
+command || echo "Failed: $?"
+
+# Use timeout for long-running commands
+timeout 60s long-command
+
+# Validate outputs
+if [ -z "$result" ]; then
+  echo "Error: Empty result"
+  exit 1
+fi
+```
+
+### Cost Optimization Synergy
+
+**Combine with Marvin's rate limiting:**
+- Token efficiency (this section) + Rate limits (Marvin's section) = 40%+ total savings
+- Memory search instead of full context load
+- Compact responses reduce output tokens
+- Selective file reads reduce input tokens
+
+---
+
+## 7. Workspace & Tools
 
 ### Squatchy's Workspace
 
@@ -228,6 +397,7 @@ Four targeted patches reduced costs by **35-40% on subagent workloads**:
 See [`COST_OPTIMIZATION.md`](COST_OPTIMIZATION.md) for detailed breakdown, rate limiting discipline, memory architecture efficiency, and Ralph deployment guidelines.
 
 ---
+
 
 ## 8. Escalation & Support
 
