@@ -211,7 +211,25 @@ Safe word location: `~/.secrets/safeword`
 
 ---
 
-## 7. Escalation & Support
+## 7. Cost & Performance Optimization
+
+### Gateway Configuration Optimizations (Feb 7, 2026)
+
+Four targeted patches reduced costs by **35-40% on subagent workloads**:
+
+1. **Context Pruning TTL:** 1h → 30m (~15% savings)
+2. **Compaction Mode:** safeguard → default (~20-30% savings on long sessions)
+3. **Subagent Model:** flash → flash-lite (~30-40% savings, 85%+ quality)
+4. **Web Fetch Max Chars:** 50k → 25k (~5-10% cache improvement)
+5. **Subagent Archive:** 60min → 30min (ops cleanliness)
+
+**Expected Savings:** -$10-20/month per 100 subagent runs
+
+See [`COST_OPTIMIZATION.md`](COST_OPTIMIZATION.md) for detailed breakdown, rate limiting discipline, memory architecture efficiency, and Ralph deployment guidelines.
+
+---
+
+## 8. Escalation & Support
 
 ### When to Escalate to Humans
 
